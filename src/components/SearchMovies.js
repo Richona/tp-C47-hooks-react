@@ -4,24 +4,37 @@ import { useState } from "react";
 
 function SearchMovies() {
 
+	const [keyword, setKeyword] = useState('action');
 
-	const keyword = 'action';
+	function handleSearchMovie() {
+		document.getElementById("formpara").addEventListener("submit", e =>{
+			e.preventDefault()
+		})
 
+		setKeyword(inputRef.current.value)
+	}
+	
 	// Credenciales de API
 	const apiKey = '202105af'; // Intenta poner cualquier cosa antes para probar
 
 	const [movies, setProduct] = useState({
-		loading: true,
-		data: {},
+		error: false,
+		data: []
 	});
 
 	useEffect(() => {
 		fetch(`http://www.omdbapi.com/?s=${keyword}&apikey=${apiKey}`)
 		.then(res => res.json())
 		.then(response => {
-			setProduct(response.Search)
+			setProduct({
+				error: response.Error ? response.Error : false ,
+				data: response.Search,
+			})
 		});
-	  }, [])
+		// eslint-disable-next-line
+	  }, [keyword])
+
+	const inputRef = React.useRef(null)
 
 	return (
 		<div className="container-fluid">
@@ -31,12 +44,12 @@ function SearchMovies() {
 						<div className="row my-4">
 							<div className="col-12 col-md-6">
 								{/* Buscador */}
-								<form method="GET">
+								<form method="GET" id='formpara'>
 									<div className="form-group">
 										<label htmlFor="">Buscar por título:</label>
-										<input type="text" className="form-control" />
+										<input type="text" ref={inputRef} className="form-control" />
 									</div>
-									<button className="btn btn-info">Search</button>
+									<button className="btn btn-info" onClick={handleSearchMovie}>Search</button>
 								</form>
 							</div>
 						</div>
@@ -46,7 +59,7 @@ function SearchMovies() {
 							</div>
 							{/* Listado de películas */}
 							{
-								movies.length > 0 && movies.map((movie, i) => {
+								!movies.error && movies.data.length > 0 && movies.data.map((movie, i) => {
 									return (
 										<div className="col-sm-6 col-md-3 my-4" key={i}>
 											<div className="card shadow mb-4">
@@ -70,7 +83,7 @@ function SearchMovies() {
 								})
 							}
 						</div>
-						{movies.length === 0 && <div className="alert alert-warning text-center">No se encontraron películas</div>}
+						{( movies.error) && <div className="alert alert-warning text-center">No se encontraron películas</div>}
 					</>
 					:
 					<div className="alert alert-danger text-center my-4 fs-2">Eyyyy... ¿PUSISTE TU APIKEY?</div>
